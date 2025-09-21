@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+JUNITPATH="/libs/junit5.jar"
+
+if [[ -f ${JUNITPATH} ]]; then
+    cp ${JUNITPATH} ../
+fi
+
+if [[ ! -f log ]]; then
+	echo
+	echo "Submission Failed Check: no log file found"
+	exit 1
+fi
+
+if [[ ! -f Makefile ]]; then
+	echo
+	echo "Submission Failed Check: no Makefile found"
+	exit 1
+fi
+
+if ! make runBackendTests && ! make runFrontendTests ; then
+	echo
+	echo "Submission Failed Check: \"make runBackendTests\" or  \"make runFrontendTests\" does not succeed"
+	exit 1
+fi
+
+if ! make clean ; then
+    echo
+    echo "Submission Failed Check: \"make clean\" does not succeed"
+    exit 1
+fi
+
+echo
+echo "Submission Passed Basic Scan"
+exit 0

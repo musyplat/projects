@@ -1,0 +1,55 @@
+Script started on 2024-02-28 22:36:29+00:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="204" LINES="63"]
+[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ git status
+[?2004lOn branch backend
+Your branch is ahead of 'origin/backend' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ [7mgit log -1[27mgit log -1
+[?2004l[?1h=[33mcommit 48ca515ead17df47e0943e85cb1e2fe4db723318[m[33m ([m[1;36mHEAD -> [m[1;32mbackend[m[33m)[m[m
+Author: Yayan <deng96@wisc.edu>[m
+Date:   Wed Feb 28 22:35:14 2024 +0000[m
+[m
+    Minor fix to Makefile, removed log[m
+[K[?1l>[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ git[K[K[Kmake clean
+[?2004lrm *.class
+[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ ls
+[?2004lApp.java      BackendDeveloperTests.java  BackendPlaceholder.java  FrontendPlaceholder.java  IterableSortedCollection.java  Song.java           SortedCollectionInterface.java  songs.csv
+Backend.java  BackendInterface.java       FrontendInterface.java   ISCPlaceholder.java       Makefile                       SongInterface.java  log
+[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ make runBDTests
+[?2004ljavac Song.java
+javac Backend.java
+javac -cp .:../junit5.jar BackendDeveloperTests.java 
+java -jar ../junit5.jar -cp . -c BackendDeveloperTests
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+[36m╷[0m
+[36m├─[0m [36mJUnit Jupiter[0m [32m✔[0m
+[36m│  └─[0m [36mBackendDeveloperTests[0m [32m✔[0m
+[36m│     ├─[0m [34mreadDataTestGood()[0m [32m✔[0m
+[36m│     ├─[0m [34mgetRangeTest()[0m [32m✔[0m
+[36m│     ├─[0m [34mfiveFastestTest()[0m [32m✔[0m
+[36m│     ├─[0m [34mreadDataTestBad()[0m [32m✔[0m
+[36m│     └─[0m [34mfilterEnergeticSongsTest()[0m [32m✔[0m
+[36m├─[0m [36mJUnit Vintage[0m [32m✔[0m
+[36m└─[0m [36mJUnit Platform Suite[0m [32m✔[0m
+
+Test run finished after 331 ms
+[         4 containers found      ]
+[         0 containers skipped    ]
+[         4 containers started    ]
+[         0 containers aborted    ]
+[         4 containers successful ]
+[         0 containers failed     ]
+[         5 tests found           ]
+[         0 tests skipped         ]
+[         5 tests started         ]
+[         0 tests aborted         ]
+[         5 tests successful      ]
+[         0 tests failed          ]
+
+[?2004h]0;deng96@my-cs400-vm: ~/week05/P105.RoleCode[01;32mdeng96@my-cs400-vm[00m:[01;34m~/week05/P105.RoleCode[00m$ exit
+[?2004lexit
+
+Script done on 2024-02-28 22:37:11+00:00 [COMMAND_EXIT_CODE="0"]

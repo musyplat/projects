@@ -1,22 +1,36 @@
 <link href="popup.css" rel="stylesheet" type="text/css" />
 <script type="module" src="popup.js"></script>
 
-<div id="container">
-  <div>
-    <div id="overtime"></div>
-    <div id="mode">Placeholder</div>
-    <div class="box" id="signal"></div>
-    <div id="display">
+<body>
+  <div id="container">
+    <div>
+      <div id="overtime"></div>
+      <div id="status">
+        <div id="mode">Placeholder</div>
+        <div class="box" id="signal"></div>
+        <button id="settingsBtn">
+          <img src="./icons/settings.svg" alt="Settings" class="icon">
+        </button>
+      </div>
+      <div id="display">
         00:00:00
-    </div>
+      </div>
 
-    <div id="controls">
-        <button id="startBtn">Start</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="resetBtn">Reset</button>
-        <button id="swapBtn">Swap</button>
+      <div id="settings" class="hidden">
         <button id="adjustBtn">Focus</button>
         <button id="restBtn">Rest</button>
+      </div>
+      <div id="controls">
+        <button id="resetBtn">
+          <img src="./icons/reset.svg" alt="Reset" class="icon">
+        </button>
+        <button id="startBtn">
+          <img src="./icons/play.svg" alt="Start" class="icon" id="startIcon">
+        </button>
+        <button id="swapBtn">
+          <img src="./icons/swap.svg" alt="Swap" class="icon">
+        </button>
+      </div>
     </div>
   </div>
-</div>
+</body>

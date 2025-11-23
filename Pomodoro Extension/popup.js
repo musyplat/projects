@@ -15,7 +15,6 @@
 /**
  * TODOs for this project
  *  find logic for making 1: settings where we can store more buttons, as a popup, 2: a theme section
- *  github push this jawn
  *  make frontend UI look better (combining buttons n such)
  */
 
@@ -32,10 +31,9 @@ let startTime = null;
 let isFocusMode = true;
 let timerInterval = null;
 let restSurplus = 0;
+let iconPath = "./icons/play.svg";
 
 let timerStarted = false;
- // TODO there's a disconnect when assigning new time (into query menu), then leaving, since it still calculates "made up" time off the old
- // Date() item, but since we changed the time, the background.js timer is going off a different system, creating desync
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("DEBUG: DOM Content Loaded");
     const startBtn = document.getElementById('startBtn');
@@ -43,7 +41,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const restBtn = document.getElementById('restBtn');
     const adjustBtn = document.getElementById('adjustBtn');
     const swapBtn = document.getElementById('swapBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
+    const startIcon = document.getElementById('startIcon');
+    const settingsBtn = document.getElementById('settingsBtn');
 
     const signalBox = document.getElementById('signal');
     const display = document.getElementById('display');
@@ -85,6 +84,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         totalSeconds = totalSeconds - differenceInSeconds;
 
         updateDisplay();
+
+        iconPath = "./icons/pause.svg";
+        startIcon.src = iconPath;
         
         timerInterval = setInterval(() => {
             totalSeconds--;
@@ -92,34 +94,49 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    startBtn.addEventListener('click', async function() {
-        console.log("DEBUG: start button pressed");
-        // being pushed after reset, pause, or a fresh state
-        if (timerInterval) return;
-        startTime = Date.now();
-        timerStarted = true;
-        await chrome.storage.local.set({ startTime: startTime, timerStarted: timerStarted });
-        if (totalSeconds > 0) {
-            chrome.runtime.sendMessage({type: "SET_TIMER", duration: totalSeconds * 1000});
-        }
-        timerInterval = setInterval(() => {
-            totalSeconds--;
-            updateDisplay();
-        }, 1000);
+    settingsBtn.addEventListener('click', function() {
+        const settings = document.getElementById('settings');
+        settings.classList.toggle('hidden');
     });
 
-    pauseBtn.addEventListener('click', async function() {
-        console.log("DEBUG: pause button pressed");
-        timerStarted = false;
-        clearInterval(timerInterval);
-        timerInterval = null;
-        updateDisplay();
-        chrome.runtime.sendMessage({ type: "CLEAR_TIMER" });
-        await chrome.storage.local.set({ totalSeconds: totalSeconds, timerStarted: timerStarted });
+    // TODO maybe make timer fire 10 seconds before finishing if we're in rest mode, so overtime doesn't add +45 for being slightly late
+    startBtn.addEventListener('click', async function () {
+        if (!timerInterval) {
+            console.log("DEBUG: start button pressed");
+
+            iconPath = "./icons/pause.svg";
+            startIcon.src = iconPath;
+
+            if (timerInterval) return;
+            startTime = Date.now();
+            timerStarted = true;
+            await chrome.storage.local.set({ startTime: startTime, timerStarted: timerStarted });
+            if (totalSeconds > 0) {
+                chrome.runtime.sendMessage({ type: "SET_TIMER", duration: totalSeconds * 1000 });
+            }
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                updateDisplay();
+            }, 1000);
+        } else {
+            console.log("DEBUG: pause button pressed");
+
+            iconPath = "./icons/play.svg";
+            startIcon.src = iconPath;
+
+            timerStarted = false;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            updateDisplay();
+            chrome.runtime.sendMessage({ type: "CLEAR_TIMER" });
+            await chrome.storage.local.set({ totalSeconds: totalSeconds, timerStarted: timerStarted });
+        }
     });
 
     resetBtn.addEventListener('click', async function() {
         console.log("DEBUG: reset button pressed");
+        iconPath = "./icons/play.svg";
+        startIcon.src = iconPath;
         clearInterval(timerInterval);
         mode.textContent = "Focus";
         timerInterval = null;
@@ -133,6 +150,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     swapBtn.addEventListener('click', async function() {
         console.log("DEBUG: swap button pressed");
+        iconPath = "./icons/pause.svg";
+        startIcon.src = iconPath;
         if (isFocusMode) {
             if (totalSeconds > 0) return;
             clearInterval(timerInterval);
@@ -175,18 +194,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // TODO replace old logic, set new timers after totalSeconds gets updated
     adjustBtn.addEventListener('click', async function() {
         console.log("DEBUG: focus button pressed");
-        /**
-         * A timer is running, we want to:
-         * 1. Update lastTrackedFocusTime to new value
-         * 2. Update totalSeconds to reflect the change
-         * 3. Update display
-         * 4. Update background alarm
-         * 5. Update the information in local storage
-         */
-        
         const results = await chrome.storage.local.get("lastTrackedFocusTime");
         const lastTracked = results.lastTrackedFocusTime || 1500;
         const newFocusTime = parseInt(prompt("Enter new focus time in minutes: ", lastTracked/60), 10) * 60;
@@ -195,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (isFocusMode) totalSeconds = totalSeconds + (newFocusTime - lastTrackedFocusTime);
             lastTrackedFocusTime = newFocusTime;
             if (isFocusMode) updateDisplay(totalSeconds);
-            if (timerInterval && isFocusMode) { // TODO see if we should remove this if statement completely ? so we can adjust timers in any mode and the timer is still consistent
+            if (timerInterval) { // TODO debug
                 startTime = Date.now();
                 chrome.runtime.sendMessage({ type: "SET_TIMER", duration: totalSeconds * 1000 });
             }
@@ -210,13 +219,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         const newRestTime = parseInt(prompt("Enter new rest time in minutes: ", lastTracked/60), 10) * 60;
 
         if (!isNaN(newRestTime) && newRestTime > 0) {
-            if (!isFocusMode) totalSeconds = (timerInterval && !isFocusMode)?(totalSeconds + (newRestTime - lastTrackedRestTime)):(newRestTime);
+            if (!isFocusMode) totalSeconds = totalSeconds + (newRestTime - lastTrackedRestTime);
             lastTrackedRestTime = newRestTime;
             if (!isFocusMode) updateDisplay(totalSeconds);
-            if (timerInterval && !isFocusMode) {
+            if (timerInterval) {
+                startTime = Date.now();
                 chrome.runtime.sendMessage({ type: "SET_TIMER", duration: totalSeconds * 1000 });
             }
-            await chrome.storage.local.set({ totalSeconds: totalSeconds, lastTrackedRestTime: lastTrackedRestTime });
+            await chrome.storage.local.set({ startTime: startTime, totalSeconds: totalSeconds, lastTrackedRestTime: lastTrackedRestTime });
         }
     });
 

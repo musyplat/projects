@@ -2,7 +2,14 @@
 <script type="module" src="popup.js"></script>
 
 <body>
-  <div id="container">
+  <div id="settings" class="hidden">
+    <button id="backBtn">
+      <img src="./icons/back.svg" alt="Back" class="icon">
+    </button>
+    <button id="adjustBtn">Change Focus Time</button>
+    <button id="restBtn">Change Rest Time</button>
+  </div>
+  <div id="container" class="hidden">
     <div>
       <div id="overtime"></div>
       <div id="status">
@@ -14,11 +21,6 @@
       </div>
       <div id="display">
         00:00:00
-      </div>
-
-      <div id="settings" class="hidden">
-        <button id="adjustBtn">Focus</button>
-        <button id="restBtn">Rest</button>
       </div>
       <div id="controls">
         <button id="resetBtn">

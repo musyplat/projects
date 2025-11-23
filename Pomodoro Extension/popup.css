@@ -30,6 +30,10 @@
     border: 1px solid black;
 }
 
+#adjustBtn, #restBtn {
+    border: 1px solid black;
+}
+
 button {
     background-color: transparent;
     border: none;
@@ -44,5 +48,5 @@ button {
 
 body {
     display: flex;
-    background-color: rgba(57, 57, 57, 0.189)
+    background-color: rgba(49, 51, 55, 0)
 }

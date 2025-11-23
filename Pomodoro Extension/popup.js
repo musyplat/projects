@@ -36,6 +36,8 @@ let iconPath = "./icons/play.svg";
 let timerStarted = false;
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("DEBUG: DOM Content Loaded");
+    const container = document.getElementById('container');
+    container.classList.toggle('hidden');
     const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
     const restBtn = document.getElementById('restBtn');
@@ -43,6 +45,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const swapBtn = document.getElementById('swapBtn');
     const startIcon = document.getElementById('startIcon');
     const settingsBtn = document.getElementById('settingsBtn');
+    const backBtn = document.getElementById('backBtn');
+    const settings = document.getElementById('settings');
 
     const signalBox = document.getElementById('signal');
     const display = document.getElementById('display');
@@ -95,8 +99,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     settingsBtn.addEventListener('click', function() {
-        const settings = document.getElementById('settings');
         settings.classList.toggle('hidden');
+        container.classList.toggle('hidden');
+    });
+
+    backBtn.addEventListener('click', function() {
+        settings.classList.toggle('hidden');
+        container.classList.toggle('hidden');
     });
 
     // TODO maybe make timer fire 10 seconds before finishing if we're in rest mode, so overtime doesn't add +45 for being slightly late
@@ -150,10 +159,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     swapBtn.addEventListener('click', async function() {
         console.log("DEBUG: swap button pressed");
-        iconPath = "./icons/pause.svg";
-        startIcon.src = iconPath;
         if (isFocusMode) {
             if (totalSeconds > 0) return;
+            iconPath = "./icons/pause.svg";
+            startIcon.src = iconPath;
             clearInterval(timerInterval);
             timerInterval = null;
             mode.textContent = "Rest";
@@ -172,6 +181,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 1000);
         } else {
             // different logic: we don't care about overtime, and any time remaining time in totalSeconds is "banked" (remove from focus time?)
+            iconPath = "./icons/pause.svg";
+            startIcon.src = iconPath;
             clearInterval(timerInterval);
             timerInterval = null;
             mode.textContent = "Focus";

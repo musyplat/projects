@@ -22,7 +22,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "timerAlarm") {
         chrome.notifications.create({
             type: "basic",
-            iconUrl: "default_icon.png",
+            iconUrl: "icon48x48.png",
             title: "Pomodoro Timer",
             message: "Overtime has been started! Press Swap Button to change modes.",
             priority: 2

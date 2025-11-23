@@ -1,7 +1,7 @@
 {
     "name": "< pomodoro extension >",
     "description": "for fighting distractions when you're supposed to be locking in",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "manifest_version": 3,
     "permissions": [
         "storage",
@@ -21,7 +21,7 @@
     },
     "action": {
         "default_popup": "popup.html",
-        "default_icon": "default_icon.png"
+        "default_icon": "icon48x48.png"
     },
     "web_accessible_resources": [
     {

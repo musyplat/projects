@@ -37,7 +37,6 @@ let timerStarted = false;
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("DEBUG: DOM Content Loaded");
     const container = document.getElementById('container');
-    container.classList.toggle('hidden');
     const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
     const restBtn = document.getElementById('restBtn');

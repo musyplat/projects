@@ -167,18 +167,6 @@ void iter_list(Task *task) // jump
 	Transform trans = rdd->trans;
 	void *transform_fn = rdd->fn;
 
-	//if (trans == MAP) { // TODO remove
-	//	printf("trans MAP\n");
-	//} else if (trans == FILTER) {
-	//	printf("trans FILTER\n");
-	//} else if (trans == PARTITIONBY) {
-	//	printf("trans PARTITIONBY\n");
-	//} else if (trans == JOIN) {
-	//	printf("trans JOIN\n");
-	//} else {
-	//	printf("shouldn't have been reached\n");
-	//}
-
 	if (trans == MAP || trans == FILTER) {
 		if (rdd->partitions == NULL) {
 			rdd->partitions = list_init(rdd->dependencies[0]->partitions->capacity);
@@ -188,22 +176,17 @@ void iter_list(Task *task) // jump
 		List *output_partition = list_init(10);
 
 		if (dep->trans == MAP && dep->fn == identity) {
-			//printf("special case called\n"); // TODO remove
-			pthread_mutex_lock(&dep->list_prot); // TODO added
+			pthread_mutex_lock(&dep->list_prot);
 			FILE *fp = get_nth_element(dep->partitions, pnum);
-			pthread_mutex_unlock(&dep->list_prot); // TODO added
+			pthread_mutex_unlock(&dep->list_prot);
 			void* line;
-			//printf("calling the fn within special case rdd, trans = MAP\n"); // TODO remove
 			while ((line = ((Mapper)transform_fn)(fp)) != NULL) {
-				//printf("function was successful, returned: %s\n", (char*)line); // TODO remove
 				list_add_elem(output_partition, line);
 			}
-			//printf("while loop terminated in special case\n"); // TODO remove
 		} else { // Handle normal List case
-			//printf("non special case called\n"); // TODO remove
-			pthread_mutex_lock(&dep->list_prot); // TODO added
+			pthread_mutex_lock(&dep->list_prot);
 			List *input_partition = get_nth_element(dep->partitions, pnum);
-			pthread_mutex_unlock(&dep->list_prot); // TODO added
+			pthread_mutex_unlock(&dep->list_prot);
 			LinkedListNode *current = input_partition->head;
 			while (current) {
 				if (current->ptr == NULL) {
@@ -212,10 +195,8 @@ void iter_list(Task *task) // jump
 				}
 				void *result;
 				if (trans == MAP) {
-					//printf("calling the fn within rdd, trans = MAP\n"); // TODO remove
 					result = ((Mapper)transform_fn)(current->ptr);
 				} else if (trans == FILTER) {
-					//printf("calling the fn within rdd, trans = FILTER\n"); // TODO remove
 					if (((Filter)transform_fn)(current->ptr, rdd->ctx)) {
 						result = current->ptr;
 					} else {
@@ -231,9 +212,7 @@ void iter_list(Task *task) // jump
 		}
 
 		// Store the result
-		//pthread_mutex_lock(&rdd->list_prot); // TODO added
 		list_insert_at(rdd->partitions, output_partition, pnum);
-		//pthread_mutex_unlock(&rdd->list_prot); // TODO added
 	} else if (trans == JOIN) {
 		if (rdd->partitions == NULL) {
 			rdd->partitions = list_init(rdd->dependencies[0]->partitions->capacity);
@@ -241,12 +220,12 @@ void iter_list(Task *task) // jump
 
 		RDD *dep1 = rdd->dependencies[0];
 		RDD *dep2 = rdd->dependencies[1];
-		pthread_mutex_lock(&dep1->list_prot); // TODO added
-		pthread_mutex_lock(&dep2->list_prot); // TODO added
+		pthread_mutex_lock(&dep1->list_prot);
+		pthread_mutex_lock(&dep2->list_prot);
 		List *part1 = get_nth_element(dep1->partitions, pnum);
 		List *part2 = get_nth_element(dep2->partitions, pnum);
-		pthread_mutex_unlock(&dep2->list_prot); // TODO added
-		pthread_mutex_unlock(&dep1->list_prot); // TODO added
+		pthread_mutex_unlock(&dep2->list_prot);
+		pthread_mutex_unlock(&dep1->list_prot);
 
 		List *output_partition = list_init(10); // arbitrary number, will be doubled as needed
 
@@ -288,9 +267,9 @@ void iter_list(Task *task) // jump
 
 		// process all input partitions, adds them to the correct partition (returned by Partitioner), only 1 task for this
 		for (int i = 0; i < dep->partitions->capacity; i++) {
-			pthread_mutex_lock(&dep->list_prot); // TODO added
+			pthread_mutex_lock(&dep->list_prot);
 			List *input_part = get_nth_element(dep->partitions, i);
-			pthread_mutex_unlock(&dep->list_prot); // TODO added
+			pthread_mutex_unlock(&dep->list_prot);
 			LinkedListNode *current = input_part->head;
 
 			while (current) {
@@ -302,9 +281,9 @@ void iter_list(Task *task) // jump
 					current->ptr,
 					rdd->numpartitions,
 					rdd->ctx);
-				pthread_mutex_lock(&rdd->list_prot); // TODO added
+				pthread_mutex_lock(&rdd->list_prot);
 				List *target = get_nth_element(rdd->partitions, target_part);
-				pthread_mutex_unlock(&rdd->list_prot); // TODO added
+				pthread_mutex_unlock(&rdd->list_prot);
 				list_add_elem(target, current->ptr);
 				current = current->next;
 			}
@@ -312,20 +291,20 @@ void iter_list(Task *task) // jump
 	}
 
 	if (rdd->trans == PARTITIONBY) {
-		pthread_mutex_lock(&rdd->list_prot); // TODO added
+		pthread_mutex_lock(&rdd->list_prot);
 		for (int i = 0; i < rdd->numpartitions; i++) {
 			rdd->ismaterialized[i] = 1;
 		}
 		rdd->fullymaterialized = 1;
-		pthread_mutex_unlock(&rdd->list_prot); // TODO added
+		pthread_mutex_unlock(&rdd->list_prot);
 	} else {
-		pthread_mutex_lock(&rdd->list_prot); // TODO added
+		pthread_mutex_lock(&rdd->list_prot);
 		rdd->ismaterialized[pnum] = 1;
 		// check if all partitions are done
 		if (contains_unmaterialized(rdd->ismaterialized, rdd->partitions->capacity) == 0) {
 			rdd->fullymaterialized = 1;
 		}
-		pthread_mutex_unlock(&rdd->list_prot); // TODO added
+		pthread_mutex_unlock(&rdd->list_prot);
 	}
 }
 
@@ -347,7 +326,7 @@ typedef struct ThreadPool {
     Queue* work_queue;
     pthread_t *threads;
     int *thread_status; /* 0 = ready, 1 = working, -1 = terminate */
-    pthread_mutex_t status_mutex; // TODO added
+    pthread_mutex_t status_mutex;
 	pthread_cond_t main_cond;
     int num_threads;
     int active_count;
@@ -491,28 +470,25 @@ void *thread_function(void *arg) { // jump
             pthread_cond_wait(&threads->work_queue->cond, &threads->work_queue->mutex);
             
             // check for termination signal
-			//pthread_mutex_lock(&threads->status_mutex); // TODO added
             if (threads->thread_status[thread_id] == -1) {
                 pthread_mutex_unlock(&threads->work_queue->mutex);
                 pthread_exit(NULL);
             }
-			//pthread_mutex_unlock(&threads->status_mutex); // TODO added
         }
 
 		Task *task = pop_queue();
 		// update status to working
-		pthread_mutex_lock(&threads->status_mutex); // TODO added
+		pthread_mutex_lock(&threads->status_mutex);
 		threads->thread_status[thread_id] = 1;
 		threads->active_count++;
-		pthread_mutex_unlock(&threads->status_mutex); // TODO added
+		pthread_mutex_unlock(&threads->status_mutex);
 		pthread_mutex_unlock(&threads->work_queue->mutex);
 
 		if (task) {
-			//printf("thread id %ld calling iter_list\n", thread_id); // TODO remove
             iter_list(task);
             
             // update metrics
-            struct timespec end_time; // TODO autofilled
+            struct timespec end_time;
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             task->metric->duration = TIME_DIFF_MICROS(task->metric->scheduled, end_time);
             metric_queue_add(task->metric);
@@ -521,10 +497,10 @@ void *thread_function(void *arg) { // jump
 		pthread_cond_signal(&threads->main_cond);
 
 		// update status to ready
-		pthread_mutex_lock(&threads->status_mutex); // TODO added
+		pthread_mutex_lock(&threads->status_mutex);
 		threads->thread_status[thread_id] = 0;
 		threads->active_count--;
-		pthread_mutex_unlock(&threads->status_mutex); // TODO added
+		pthread_mutex_unlock(&threads->status_mutex);
 	}
 	return NULL;
 }
@@ -539,7 +515,7 @@ void thread_pool_init(int num_threads) {
 
     threads->threads = malloc(num_threads * sizeof(pthread_t));
     threads->thread_status = calloc(num_threads, sizeof(int));
-    pthread_mutex_init(&threads->status_mutex, NULL); // TODO added
+    pthread_mutex_init(&threads->status_mutex, NULL);
 	pthread_cond_init(&threads->main_cond, NULL);
     threads->num_threads = num_threads;
     threads->active_count = 0;
@@ -555,11 +531,11 @@ void thread_pool_init(int num_threads) {
 /* Join all the threads and deallocate any memory used by the pool. */
 void thread_pool_destroy() {
     // signal all threads to terminate
-    pthread_mutex_lock(&threads->status_mutex); // TODO added
+    pthread_mutex_lock(&threads->status_mutex);
     for (int i = 0; i < threads->num_threads; i++) {
         threads->thread_status[i] = -1;
     }
-	pthread_mutex_unlock(&threads->status_mutex); // TODO added
+	pthread_mutex_unlock(&threads->status_mutex);
     
     // wake all threads
     pthread_cond_broadcast(&threads->work_queue->cond);
@@ -572,7 +548,7 @@ void thread_pool_destroy() {
     // cleanup
     pthread_mutex_destroy(&threads->work_queue->mutex);
     pthread_cond_destroy(&threads->work_queue->cond);
-    pthread_mutex_destroy(&threads->status_mutex); // TODO added
+    pthread_mutex_destroy(&threads->status_mutex);
 	pthread_cond_destroy(&threads->main_cond);
     free(threads->threads);
     free(threads->thread_status);
@@ -581,15 +557,11 @@ void thread_pool_destroy() {
 }
 
 /* Returns when the work queue is empty and all threads have finished their tasks. */
-void thread_pool_wait() // TODO task finish this
+void thread_pool_wait()
 {
-	while (threads->work_queue->head != NULL)
-	{
-		// wait for the queue to be empty
-	}
+	while (threads->work_queue->head != NULL) { } // wait for the queue to be empty
 	// queue is now empty, must wait for all threads to finish their jobs
-	while (threads->active_count > 0) {
-	}
+	while (threads->active_count > 0) { }
 	return;
 }
 
@@ -642,7 +614,7 @@ RDD *create_rdd(int numdeps, Transform t, void *fn, ...)
 	rdd->trans = t;
 	rdd->fn = fn;
 	rdd->partitions = NULL;
-	rdd->list_prot = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER; // TODO added
+	rdd->list_prot = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 
 	rdd->ismaterialized = calloc(maxpartitions, sizeof(int));
 	if (rdd->ismaterialized == NULL) {
@@ -725,7 +697,7 @@ RDD *RDDFromFiles(char **filenames, int numfiles)
 	rdd->numdependencies = 0;
 	rdd->trans = MAP;
 	rdd->fn = (void *)identity;
-	rdd->list_prot = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER; // TODO added
+	rdd->list_prot = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 
 	rdd->ismaterialized = calloc(numfiles, sizeof(int));
 	if (rdd->ismaterialized == NULL) {
@@ -758,7 +730,7 @@ Task *init_task(RDD *rdd, int pnum)
 	Task *task = malloc(sizeof(Task));
 	task->rdd = rdd;
 	task->pnum = pnum;
-	task->metric = malloc(sizeof(TaskMetric)); // TODO autofilled
+	task->metric = malloc(sizeof(TaskMetric));
 	clock_gettime(CLOCK_MONOTONIC, &task->metric->created);
 	task->metric->rdd = rdd;
 	task->metric->pnum = pnum;
@@ -774,12 +746,12 @@ void queue_ready_partitions(RDD *rdd)
 	}
 
 	for (int i = 0; i < rdd->partitions->capacity; i++) {
-		pthread_mutex_lock(&rdd->list_prot); // TODO added
+		pthread_mutex_lock(&rdd->list_prot);
 		if (rdd->ismaterialized[i] || rdd->addedtoqueue[i]) {
-			pthread_mutex_unlock(&rdd->list_prot); // TODO added
+			pthread_mutex_unlock(&rdd->list_prot);
 			continue;
 		}
-		pthread_mutex_unlock(&rdd->list_prot); // TODO added
+		pthread_mutex_unlock(&rdd->list_prot);
 
 		int dependencies_ready = 1;
 		for (int dep = 0; dep < rdd->numdependencies; dep++) {
@@ -793,16 +765,16 @@ void queue_ready_partitions(RDD *rdd)
 			} else if (rdd->trans == JOIN) { // since JOIN requires both dependencies, the for loop doesn't matter, but the structure is already set so its inefficient ._.
 				RDD* child1 = rdd->dependencies[0];
 				RDD* child2 = rdd->dependencies[1];
-				pthread_mutex_lock(&child1->list_prot); // TODO added
-				pthread_mutex_lock(&child2->list_prot); // TODO added
+				pthread_mutex_lock(&child1->list_prot);
+				pthread_mutex_lock(&child2->list_prot);
 				if (!child1->ismaterialized[i] || !child2->ismaterialized[i]) {
 					dependencies_ready = 0;
-					pthread_mutex_unlock(&child2->list_prot); // TODO added
-					pthread_mutex_unlock(&child1->list_prot); // TODO added
+					pthread_mutex_unlock(&child2->list_prot);
+					pthread_mutex_unlock(&child1->list_prot);
 					break;
 				}
-				pthread_mutex_unlock(&child2->list_prot); // TODO added
-				pthread_mutex_unlock(&child1->list_prot); // TODO added
+				pthread_mutex_unlock(&child2->list_prot);
+				pthread_mutex_unlock(&child1->list_prot);
 			} else { // PARTITIONBY only, which requires its (ONLY) dependency to be fully materialized
 				if (!child->fullymaterialized) {
 					dependencies_ready = 0;
@@ -821,7 +793,7 @@ void queue_ready_partitions(RDD *rdd)
 			} else {
 				rdd->addedtoqueue[i] = 1;
 			}
-			clock_gettime(CLOCK_MONOTONIC, &task->metric->scheduled); // TODO autofilled
+			clock_gettime(CLOCK_MONOTONIC, &task->metric->scheduled);
 		}
 	}
 }
@@ -829,11 +801,9 @@ void queue_ready_partitions(RDD *rdd)
 /* recursively iterates through given RDD, adding ready partitions into Task queue */
 void iterate_rdd(RDD *rdd)
 {
-	//pthread_mutex_lock(&rdd->list_prot); // TODO added
 	if (rdd->fullymaterialized) {
 		return;
 	}
-	//pthread_mutex_unlock(&rdd->list_prot); // TODO added
 
 	for (int i = 0; i < rdd->numdependencies; i++) {
 		iterate_rdd(rdd->dependencies[i]);
@@ -883,7 +853,7 @@ void execute(RDD *rdd)
 	return;
 }
 
-void MS_Run() // TODO task finish fcn
+void MS_Run()
 {
 	// Create a thread pool, work queue, and worker threads
 	
@@ -897,10 +867,6 @@ void MS_Run() // TODO task finish fcn
 	int cores_available = CPU_COUNT(&set);
 	thread_pool_init(cores_available - 1); // 1 for the metric thread
 
-	//printf("----- NEW INSTANCE RUNNING -----\n"); // TODO remove
-
-	//thread_pool_init(4);
-   
 	// Create the task metric queue and start the metrics monitor thread
 	metric_queue_init();
 	return;
@@ -942,8 +908,6 @@ void print(RDD *rdd, Printer p)
 	// print all the items in rdd
 	// aka... `p(item)` for all items in rdd
 	for (int i = 0; i < rdd->partitions->capacity; i++) {
-		//printf("---------START OF LOOP---------\n");
-		//pthread_mutex_lock(&rdd->list_prot); // TODO added
 		List *part = get_nth_element(rdd->partitions, i);
 		LinkedListNode *current = part->head;
 		while (current) {
@@ -952,8 +916,6 @@ void print(RDD *rdd, Printer p)
 			}
 			current = current->next;
 		}
-		//pthread_mutex_unlock(&rdd->list_prot); // TODO added
-		//printf("----------END OF LOOP----------\n");
 	}
 }
 

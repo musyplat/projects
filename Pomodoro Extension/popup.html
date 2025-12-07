@@ -1,14 +1,23 @@
 <link href="popup.css" rel="stylesheet" type="text/css" />
-<script type="module" src="popup.js"></script>
 
 <body>
   <div id="settings" class="hidden">
     <button id="backBtn">
       <img src="./icons/back.svg" alt="Back" class="icon">
     </button>
-    <button id="adjustBtn">Change Focus Time</button>
-    <button id="restBtn">Change Rest Time</button>
-  </div>
+    <div id="row">
+      <button id="adjustBtn">Focus</button>
+      <button id="restBtn">Rest</button>
+    </div>
+    <div id="row">
+      <input type="checkbox" id="focusCheckbox" value="yes" checked>
+      <label for="focusCheckbox">Focus Overtime Bonus</label>
+    </div>
+    <div id="row">
+      <input type="checkbox" id="restCheckbox" value="yes" checked>
+      <label for="restCheckbox">Rest Overtime Penalty</label>
+    </div>
+    </div>
   <div id="container">
     <div>
       <div id="overtime"></div>
@@ -22,7 +31,7 @@
       <div id="display">
         00:00:00
       </div>
-      <div id="controls">
+      <div id="row">
         <button id="resetBtn">
           <img src="./icons/reset.svg" alt="Reset" class="icon">
         </button>
@@ -36,3 +45,5 @@
     </div>
   </div>
 </body>
+
+<script type="module" src="popup.js"></script>

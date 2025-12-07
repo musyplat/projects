@@ -44,10 +44,20 @@ button {
     cursor: pointer;
 }
 
-#controls {
+#row {
     display: flex;
     flex-direction: row;
     justify-content: center;
+}
+
+#settings {
+    overflow-y: auto;
+}
+
+#backBtn {
+    padding: 0px;
+    border: none;
+    text-align: left;
 }
 
 body {

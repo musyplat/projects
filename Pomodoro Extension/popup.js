@@ -14,8 +14,11 @@
 
 /**
  * TODOs for this project
- *  find logic for making 1: settings where we can store more buttons, as a popup, 2: a theme section
- *  make frontend UI look better (combining buttons n such)
+ * - add different settings where tracking overtime is optional
+ *  - add listeners for both checkboxes
+ *  - update loadup logic to fetch those settings
+ *  - update swap logic to account for those settings
+ * - theme selection ?
  */
 
 /**
@@ -32,6 +35,8 @@ let isFocusMode = true;
 let timerInterval = null;
 let restSurplus = 0;
 let iconPath = "./icons/play.svg";
+let trackFocusOvertime = true;
+let trackRestOvertime = true;
 
 let timerStarted = false;
 document.addEventListener('DOMContentLoaded', async function() {
@@ -46,6 +51,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const settingsBtn = document.getElementById('settingsBtn');
     const backBtn = document.getElementById('backBtn');
     const settings = document.getElementById('settings');
+    const focusCheckbox = document.getElementById('focusCheckbox');
+    const restCheckbox = document.getElementById('restCheckbox');
 
     const signalBox = document.getElementById('signal');
     const display = document.getElementById('display');
@@ -70,8 +77,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         display.textContent = `${hours}:${minutes}:${seconds}`;
     }
 
-    console.log("DEBUG: startup data loaded");
-    const startupResults = await chrome.storage.local.get(["totalSeconds", "timerStarted", "isFocusMode", "restSurplus", "startTime", "lastTrackedFocusTime", "lastTrackedRestTime"]);
+    // STARTUP: load data from storage
+    console.log("DEBUG: startup data loaded"); // TODO put all of this inside its own function to look cleaner
+    const startupResults = await chrome.storage.local.get(["totalSeconds", "timerStarted", "isFocusMode", "restSurplus", "startTime", "lastTrackedFocusTime", "lastTrackedRestTime", "trackFocusOvertime", "trackRestOvertime"]);
+    trackFocusOvertime = startupResults.trackFocusOvertime ?? true;
+    trackRestOvertime = startupResults.trackRestOvertime ?? true;
+    focusCheckbox.checked = trackFocusOvertime;
+    restCheckbox.checked = trackRestOvertime;
     lastTrackedFocusTime = startupResults.lastTrackedFocusTime || 1500;
     lastTrackedRestTime = startupResults.lastTrackedRestTime || 300;
     isFocusMode = startupResults.isFocusMode ?? true;
@@ -167,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             mode.textContent = "Rest";
             isFocusMode = false;
             timerStarted = true;
-            let addToRest = -totalSeconds / (lastTrackedFocusTime / lastTrackedRestTime);
+            let addToRest = (trackFocusOvertime)?(-totalSeconds / (lastTrackedFocusTime / lastTrackedRestTime)):0;
             const result  = await chrome.storage.local.get("restSurplus");
             const surplus = result.restSurplus || 0;
             totalSeconds = lastTrackedRestTime + Math.floor(addToRest) + surplus;
@@ -189,7 +201,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             timerStarted = true;
             if (totalSeconds < 0) { // overtime during rest period
                 restSurplus = 0;
-                totalSeconds = lastTrackedFocusTime + Math.floor(-totalSeconds * (lastTrackedFocusTime / lastTrackedRestTime));
+                let addToFocus = (trackRestOvertime)?(Math.floor(-totalSeconds * (lastTrackedFocusTime / lastTrackedRestTime))):0;
+                totalSeconds = lastTrackedFocusTime + addToFocus;
             } else {
                 restSurplus = totalSeconds;
                 totalSeconds = lastTrackedFocusTime;
@@ -238,6 +251,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             await chrome.storage.local.set({ startTime: startTime, totalSeconds: totalSeconds, lastTrackedRestTime: lastTrackedRestTime });
         }
+    });
+
+    focusCheckbox.addEventListener('change', async function() {
+        trackFocusOvertime = focusCheckbox.checked;
+        await chrome.storage.local.set({ trackFocusOvertime: trackFocusOvertime });
+    });
+
+    restCheckbox.addEventListener('change', async function() {
+        trackRestOvertime = restCheckbox.checked;
+        await chrome.storage.local.set({ trackRestOvertime: trackRestOvertime });
     });
 
     updateDisplay();
